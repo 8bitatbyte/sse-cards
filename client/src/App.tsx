@@ -1,11 +1,12 @@
 import styles from "./App.module.css";
 import { CurrenciesListProvider } from "./contexts/currencies";
+import { CurrenciesListTransfer } from "./components/CurrenciesListTransfer/";
 
 const App = () => {
   return (
     <div className={styles.App}>
       <CurrenciesListProvider>
-        <h1>Child in provider</h1>
+        <CurrenciesListTransfer />
       </CurrenciesListProvider>
     </div>
   );
