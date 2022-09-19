@@ -11,7 +11,7 @@ function union(a: string[], b: string[]) {
 }
 
 function numberOfChecked(items: string[], checked: string[]) {
-  return intersection(checked, items).length;
+    return intersection(checked, items).length;
 }
 
 export { not, intersection, union, numberOfChecked };
