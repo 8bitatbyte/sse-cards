@@ -1,11 +1,18 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState, useEffect } from "react";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import styles from "./CurrencyCard.module.css";
 import Typography from "@mui/material/Typography/Typography";
 
-import { useCurrenciesList } from "../../contexts/currencies";
 import currenciesSignsDictionary from "../../dictionaries/currenciesSigns";
+
+import { store } from '../../store/store';
+
+const useStore = () => {
+  const [state, setState] = useState(store.getState());
+  useEffect(() => store.subscribe(setState), []);
+  return state;
+}
 
 const CurrencyCardHeader = memo(({ item }: { item: string }) => {
   return (
@@ -16,9 +23,7 @@ const CurrencyCardHeader = memo(({ item }: { item: string }) => {
 });
 
 const CurrencyCard = ({ item }: { item: string }) => {
-  const {
-    state: { costs },
-  } = useCurrenciesList();
+  const { costs } = useStore();
 
   const name = useMemo(() => item.toUpperCase().trim(), [item]);
 

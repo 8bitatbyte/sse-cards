@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import Grid from "@mui/material/Grid";
 import List from "@mui/material/List";
 import Card from "@mui/material/Card";
@@ -11,10 +11,15 @@ import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 
 import { not, intersection, union, numberOfChecked } from "../../utils";
+import { store } from '../../store/store';
 
-import { useCurrenciesList } from "../../contexts/currencies";
+const useStore = () => {
+  const [state, setState] = useState(store.getState());
+  useEffect(() => store.subscribe(setState), []);
+  return state;
+}
 
-const CustomList = ({
+const CustomList = memo(({
   title,
   items,
   numberOfChecked,
@@ -118,30 +123,27 @@ const CustomList = ({
       </List>
     </Card>
   );
-};
+});
 
 const CurrenciesListTransfer = () => {
-  const {
-    state: { listCurrencies, listMonitoring },
-    dispatch,
-  } = useCurrenciesList();
+  const { listCurrencies, listMonitoring } = useStore();
   const [checked, setChecked] = useState<string[]>([]);
   const [listening, setListening] = useState(false);
 
   const leftChecked = useMemo(() => {
     return intersection(checked, listCurrencies);
-  }, [checked, listCurrencies.length]);
+  }, [checked.length, listCurrencies.length]);
 
   const rightChecked = useMemo(() => {
     return intersection(checked, listMonitoring);
-  }, [checked, listMonitoring.length]);
+  }, [checked.length, listMonitoring.length]);
 
   useEffect(() => {
     if (!listening) {
       const sseSource = new EventSource("http://localhost:3001/monitoring");
       sseSource.onmessage = (message) => {
         const newCurrenciesCosts = JSON.parse(message.data);
-        dispatch({ type: "updateCosts", payload: newCurrenciesCosts });
+        store.updateCosts(newCurrenciesCosts);
       };
       setListening(true);
     }
@@ -155,15 +157,15 @@ const CurrenciesListTransfer = () => {
       },
       body: JSON.stringify(listMonitoring),
     });
-  }, [listMonitoring]);
+  }, [listMonitoring.length]);
 
   const handleChecked = (eventName: string) => {
     if (eventName === "right") {
-      dispatch({ type: "removeFromListMonitoring", payload: checked });
       setChecked(not(checked, leftChecked));
+      store.setToListMonitoring(checked);
     } else {
-      dispatch({ type: "setToListMonitoring", payload: checked });
       setChecked(not(checked, rightChecked));
+      store.removeFromListMonitoring(checked);
     }
   };
 
@@ -225,4 +227,4 @@ const CurrenciesListTransfer = () => {
   );
 };
 
-export default CurrenciesListTransfer;
+export default memo(CurrenciesListTransfer);

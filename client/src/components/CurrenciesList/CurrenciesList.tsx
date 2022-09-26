@@ -1,20 +1,27 @@
+import { useState, useEffect, useMemo } from 'react';
 import Grid from "@mui/material/Grid";
 import { CurrencyCard } from "../CurrencyCard";
 
-import { useCurrenciesList } from "../../contexts/currencies";
+import { store } from '../../store/store';
 
-const CurrencyList = () => {
-  const { state } = useCurrenciesList();
+const useStore = () => {
+  const [state, setState] = useState(store.getState());
+  useEffect(() => store.subscribe(setState), []);
+  return state;
+}
 
-  const renderCardList = () => {
-    if (state.listMonitoring.length) {
-      return state.listMonitoring.map((item: string, index: number) => {
+const CurrenciesList = () => {
+  const { listMonitoring } = useStore();
+
+  const renderCardList = useMemo(() => {
+    if (listMonitoring.length) {
+      return listMonitoring.map((item: string, index: number) => {
         return <CurrencyCard key={index} item={item} />;
       });
     } else {
       return <span>Not Monitoring</span>;
     }
-  };
+  }, [listMonitoring.length]);
 
   return (
     <Grid
@@ -30,10 +37,10 @@ const CurrencyList = () => {
         spacing={3}
         width="45vw"
       >
-        {renderCardList()}
+        {renderCardList}
       </Grid>
     </Grid>
   );
 };
 
-export default CurrencyList;
+export default CurrenciesList;
